@@ -1,0 +1,61 @@
+# Runs everything locally: `make dev` from the repository root.
+name: onsite
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: onsite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-onsite-local-dev}
+      POSTGRES_DB: onsite
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U onsite -d onsite"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  server:
+    build:
+      context: ..
+      dockerfile: deploy/server.Dockerfile
+    environment:
+      ONSITE_DATABASE_URL: postgres://onsite:${POSTGRES_PASSWORD:-onsite-local-dev}@postgres:5432/onsite?sslmode=disable
+      ONSITE_DATA_DIR: /data
+      ONSITE_PUBLIC_DIR: /public
+      # Extra names for the self-signed certificate. "server" is how the web
+      # container reaches it; add this machine's hostname for remote agents.
+      ONSITE_TLS_HOSTS: server${ONSITE_TLS_HOSTS:+,${ONSITE_TLS_HOSTS}}
+    ports:
+      - "8443:8443"
+    volumes:
+      - server-data:/data
+      - server-public:/public
+    healthcheck:
+      test: ["CMD", "/server", "healthcheck"]
+      interval: 2s
+      timeout: 6s
+      retries: 30
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    ports:
+      # Local machine only: the page is plain HTTP on localhost, and the web
+      # container talks to the server over verified HTTPS.
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - server-public:/public:ro
+    depends_on:
+      server:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  server-data:
+  server-public:

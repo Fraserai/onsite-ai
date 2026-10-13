@@ -1,0 +1,11 @@
+# Local dev state (copied CA certificate, agent state)
+.dev/
+bin/
+data/
+.env
+
+# Web
+web/node_modules/
+web/dist/
+
+.DS_Store

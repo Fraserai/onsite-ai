@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS utilisation_samples;
+DROP TABLE IF EXISTS machine_sources;
+DROP TABLE IF EXISTS scans;
+DROP TABLE IF EXISTS connectors;
+DROP TABLE IF EXISTS agents;
+DROP TABLE IF EXISTS enrolment_tokens;
+DROP TABLE IF EXISTS gpus;
+DROP TABLE IF EXISTS machines;
+DROP TABLE IF EXISTS admin_users;

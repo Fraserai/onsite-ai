@@ -1,0 +1,5 @@
+.git
+.dev
+bin
+web/node_modules
+web/dist
